@@ -1,0 +1,8 @@
+{
+  "task_name": "Example delivery task",
+  "requirement": "Describe the original requirement.",
+  "build_result": "not_run",
+  "test_result": "not_run",
+  "risks": [],
+  "known_issues": []
+}
