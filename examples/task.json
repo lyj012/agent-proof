@@ -1,10 +1,24 @@
 {
-  "task_name": "Example delivery task",
-  "requirement": "Describe the original requirement.",
-  "build_result": "not_run",
-  "test_result": "not_run",
-  "risks": [],
-  "known_issues": [],
-  "acceptance_steps": [],
-  "manual_review": []
+  "task_name": "Add settings export command",
+  "requirement": "Add a small CLI command that exports user settings to a Markdown file and document how to verify it.",
+  "build_result": "passed",
+  "test_result": "passed",
+  "risks": [
+    "AgentProof does not execute the build or tests; these results are declared by the developer.",
+    "The generated report should be reviewed before customer delivery."
+  ],
+  "known_issues": [
+    "The example task is intentionally small and does not represent a full production audit."
+  ],
+  "acceptance_steps": [
+    "Open the generated delivery report.",
+    "Confirm the latest commit metadata is present.",
+    "Confirm the transcript excerpt is redacted and truncated status is shown.",
+    "Confirm build and test results are marked as developer-declared."
+  ],
+  "manual_review": [
+    "Confirmed modified files belong to the example task.",
+    "Confirmed fake secrets in the transcript are redacted.",
+    "Confirmed no build or test command was executed by AgentProof."
+  ]
 }

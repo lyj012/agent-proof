@@ -44,7 +44,9 @@ def generate_report(
     acceptance_steps = [redact_text(item, repo_path) for item in task.acceptance_steps]
     manual_review = [redact_text(item, repo_path) for item in task.manual_review]
     commit_message = redact_text(commit.message, repo_path)
+    author = redact_text(commit.author, repo_path)
     stat = redact_text(commit.stat, repo_path)
+    transcript_excerpt = redact_text(transcript.excerpt, repo_path)
 
     sections = [
         "# 交付报告",
@@ -61,7 +63,7 @@ def generate_report(
         "## 3. Git 证据",
         f"- Hash: `{commit.hash}`",
         f"- Message: {commit_message or '(empty)'}",
-        f"- Author: {commit.author}",
+        f"- Author: {author}",
         f"- Date: {commit.date}",
         "- Evidence source: local Git repository latest 1 commit",
         "## 4. 修改文件",
@@ -76,7 +78,7 @@ def generate_report(
         "- Read status: read from user-specified local transcript file",
         f"- Transcript truncated: {'yes' if transcript.truncated else 'no'}",
         "- Summary type: deterministic redacted excerpt, not AI semantic summary",
-        _code_block(transcript.excerpt, "text"),
+        _code_block(transcript_excerpt, "text"),
         "## 7. 构建结果",
         f"Build result: {task.build_result}\nSource: developer-declared\nAgentProof executed build: no",
         "## 8. 测试结果",

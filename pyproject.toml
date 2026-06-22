@@ -13,6 +13,21 @@ authors = [
   { name = "AgentProof contributors" }
 ]
 dependencies = []
+keywords = ["cli", "delivery", "evidence", "ai-assisted-development", "markdown"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Documentation",
+]
+
+[project.urls]
+Homepage = "https://github.com/lyj012/agent-proof"
+Repository = "https://github.com/lyj012/agent-proof"
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]

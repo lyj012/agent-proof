@@ -209,6 +209,9 @@ tempCodeRunnerFile.py
 # PyPI configuration file
 .pypirc
 
+# AgentProof local default output
+/delivery-report.md
+
 # Marimo
 marimo/_static/
 marimo/_lsp/

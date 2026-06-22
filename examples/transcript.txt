@@ -1,0 +1,28 @@
+User requested a small CLI improvement: add a settings export command and produce a Markdown delivery report.
+
+I inspected README.md, pyproject.toml, src/agentproof/cli.py, and tests.
+I changed the CLI implementation and updated the task documentation.
+I ran python -m pytest and confirmed the developer-declared result was passed.
+
+Limits found:
+- AgentProof only reads the latest local Git commit.
+- AgentProof does not execute build commands.
+- AgentProof does not execute test commands.
+- The final report still needs human review before customer delivery.
+
+Fake sensitive values for redaction demonstration:
+- api_key=example-api-key-123
+- token: example-token-123
+- Authorization: Bearer example-bearer-token
+- Cookie: session=example-cookie
+- Contact: developer@example.test
+- Windows path: C:\Users\demo user\AgentProof Example\settings.json
+- macOS path: /Users/demo/AgentProof Example/settings.json
+- OpenAI-style fake key: sk-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+- GitHub-style fake token: ghp_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+- JWT-like fake token: eyJaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbb.cccccccccccccccc
+
+-----BEGIN PRIVATE KEY-----
+fake-private-key-for-redaction-demo
+-----END PRIVATE KEY-----
+
