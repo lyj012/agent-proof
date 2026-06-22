@@ -33,4 +33,4 @@ jobs:
         run: |
           agentproof --version
           agentproof --help
-
+          agentproof generate --help

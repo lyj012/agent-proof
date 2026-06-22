@@ -70,6 +70,21 @@ def test_redacts_github_token() -> None:
     assert SENSITIVE_VALUE in redacted
 
 
+def test_redacts_github_fine_grained_pat() -> None:
+    token = "github_pat_" + "A" * 24
+
+    redacted = redact_text(f"token {token}")
+
+    assert token not in redacted
+    assert SENSITIVE_VALUE in redacted
+
+
+def test_does_not_redact_short_github_pat_text() -> None:
+    text = "github_pat_example is placeholder text."
+
+    assert redact_text(text) == text
+
+
 def test_redacts_jwt() -> None:
     jwt = "eyJ" + "a" * 16 + "." + "b" * 16 + "." + "c" * 16
 
@@ -93,3 +108,65 @@ def test_does_not_redact_ordinary_text() -> None:
 
     assert redact_text(text) == text
 
+
+def test_redacts_common_posix_absolute_paths() -> None:
+    paths = [
+        "/root/.ssh/id_rsa",
+        "/etc/hosts",
+        "/home/demo/project",
+        "/Users/demo/project/settings.json",
+        "/var/log/app.log",
+        "/tmp/build-output",
+        "/opt/service/config",
+        "/private/tmp/example",
+    ]
+
+    redacted = redact_text("\n".join(paths))
+
+    for path in paths:
+        assert path not in redacted
+    assert f"{LOCAL_PATH_VALUE}/id_rsa" in redacted
+    assert f"{LOCAL_PATH_VALUE}/hosts" in redacted
+    assert f"{LOCAL_PATH_VALUE}/project" in redacted
+    assert f"{LOCAL_PATH_VALUE}/settings.json" in redacted
+    assert LOCAL_PATH_VALUE in redacted
+
+
+def test_posix_path_redaction_preserves_repo_relative_path(tmp_path) -> None:
+    repo_file = tmp_path / "src" / "agentproof" / "cli.py"
+    repo_file.parent.mkdir(parents=True)
+    repo_file.write_text("print('ok')", encoding="utf-8")
+
+    redacted = redact_text(f"Changed {repo_file}", tmp_path)
+
+    assert str(repo_file) not in redacted
+    assert "src" in redacted
+    assert "cli.py" in redacted
+
+
+def test_does_not_redact_urls_or_relative_paths() -> None:
+    text = "Open https://example.com/path and src/agentproof/cli.py"
+
+    assert redact_text(text) == text
+
+
+def test_redacts_windows_paths_without_extensions() -> None:
+    paths = [
+        r"C:\Users\demo\project",
+        r"C:\Users\demo\.ssh\id_rsa",
+        r"D:\workspace\agent-proof",
+    ]
+
+    redacted = redact_text("\n".join(paths))
+
+    for path in paths:
+        assert path not in redacted
+    assert rf"{LOCAL_PATH_VALUE}\project" in redacted
+    assert rf"{LOCAL_PATH_VALUE}\id_rsa" in redacted
+    assert rf"{LOCAL_PATH_VALUE}\agent-proof" in redacted
+
+
+def test_does_not_redact_ordinary_backslash_text() -> None:
+    text = r"Use escaped newline \n or command flag \verbose in docs."
+
+    assert redact_text(text) == text

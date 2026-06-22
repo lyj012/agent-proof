@@ -98,14 +98,14 @@ agentproof --help
 
 ## Quick Start
 
-From the repository root:
+From the AgentProof repository root, generate a local report without overwriting the committed static example report:
 
 ```bash
 agentproof generate \
   --repo . \
   --task-file examples/task.json \
   --transcript examples/transcript.txt \
-  --output examples/delivery-report.md
+  --output delivery-report.md
 ```
 
 On Windows PowerShell:
@@ -115,8 +115,12 @@ agentproof generate `
   --repo . `
   --task-file examples\task.json `
   --transcript examples\transcript.txt `
-  --output examples\delivery-report.md
+  --output delivery-report.md
 ```
+
+`--repo .` reads the latest commit from the current AgentProof repository. The Git evidence in the generated report therefore depends on your local checkout and current latest commit.
+
+The committed `examples/delivery-report.md` file is a static example generated from an independent temporary demo Git repository. Its repository name, commit hash, and changed file list are not expected to match reports generated with `--repo .`.
 
 ## CLI Usage
 
@@ -253,14 +257,14 @@ Install locally:
 python -m pip install -e ".[dev]"
 ```
 
-Generate the example report:
+Generate a local demonstration report:
 
 ```bash
 agentproof generate \
   --repo . \
   --task-file examples/task.json \
   --transcript examples/transcript.txt \
-  --output examples/delivery-report.md
+  --output delivery-report.md
 ```
 
 Run tests:
@@ -276,6 +280,8 @@ The example files are:
 - `examples/delivery-report.md`
 
 The transcript intentionally contains fake tokens, a fake email address, fake local paths, and a fake private key block to demonstrate redaction.
+
+`examples/delivery-report.md` is checked in as a static output sample. It was generated from a temporary demo Git repository whose latest commit changed `settings_export.py`. The command above is for exercising the CLI in your current checkout and may produce different Git repository, commit, and file evidence.
 
 ## Project Limits
 

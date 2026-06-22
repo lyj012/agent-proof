@@ -18,13 +18,16 @@ _AUTH_VALUE_RE = re.compile(
     r"(?i)(?P<prefix>\"?authorization\"?\s*(?:=|:)\s*)(?P<quote>[\"']?)(?!Bearer\b)(?P<value>[^\s\r\n,\"']+)(?P=quote)"
 )
 _COOKIE_RE = re.compile(r"(?i)(Cookie\s*:\s*)([^\r\n]+)")
-_WINDOWS_PATH_RE = re.compile(r"(?i)\b[A-Z]:\\(?:[^\\\r\n\"'<>|]+\\)*[^\\\r\n\"'<>|]*?\.[A-Z0-9]{1,10}")
+_WINDOWS_PATH_RE = re.compile(r"(?i)\b[A-Z]:\\(?:Users|workspace|projects|dev|src|tmp|temp)\\[^\r\n\"'<>|`]*")
 _POSIX_PATH_RE = re.compile(
-    r"(?<!\w)/(?:Users|home|var|tmp|private|opt)/(?:[^\r\n\"'<>|]+/)*[^\r\n/\"'<>|]*?\.[A-Za-z0-9]{1,10}"
+    r"(?<![:/\w])(?:"
+    r"/(?:Users|home|root|etc|var|tmp|private|opt)/(?:[^\r\n\"'<>|`]+/)+[^\s\r\n/\"'<>|`]*?\.[A-Za-z0-9]{1,10}"
+    r"|/(?:Users|home|root|etc|var|tmp|private|opt)/(?!$)[^\s\r\n\"'<>|`]+"
+    r")"
 )
 _EMAIL_RE = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b")
 _OPENAI_KEY_RE = re.compile(r"\bsk-[A-Za-z0-9_-]{20,}\b")
-_GITHUB_TOKEN_RE = re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{20,}\b")
+_GITHUB_TOKEN_RE = re.compile(r"\b(?:(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,})\b")
 _JWT_RE = re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b")
 _PRIVATE_KEY_RE = re.compile(
     r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?-----END [A-Z ]*PRIVATE KEY-----",
