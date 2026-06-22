@@ -1,10 +1,12 @@
 import argparse
-import json
+import sys
 from pathlib import Path
 
 from agentproof import __version__
+from agentproof.errors import AgentProofError
 from agentproof.git_reader import read_latest_commit
 from agentproof.report_generator import generate_report
+from agentproof.task_reader import read_task
 from agentproof.transcript_reader import read_transcript
 
 
@@ -39,11 +41,23 @@ def create_parser() -> argparse.ArgumentParser:
 
 
 def _handle_generate(args: argparse.Namespace) -> int:
-    task = json.loads(Path(args.task_file).read_text(encoding="utf-8"))
-    transcript = read_transcript(args.transcript)
-    commit = read_latest_commit(args.repo)
-    report = generate_report(task, transcript, commit)
-    Path(args.output).write_text(report, encoding="utf-8")
+    try:
+        output_path = Path(args.output)
+        if output_path.parent != Path(".") and not output_path.parent.exists():
+            raise AgentProofError(f"Output directory does not exist: {output_path.parent}")
+
+        task = read_task(args.task_file)
+        commit = read_latest_commit(args.repo)
+        transcript = read_transcript(args.transcript, args.repo)
+        report = generate_report(task, transcript, commit, args.repo, args.task_file, args.transcript, args.output)
+        output_path.write_text(report, encoding="utf-8")
+    except OSError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+    except AgentProofError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+
     print(f"Generated report: {args.output}")
     return 0
 

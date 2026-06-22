@@ -4,5 +4,7 @@
   "build_result": "not_run",
   "test_result": "not_run",
   "risks": [],
-  "known_issues": []
+  "known_issues": [],
+  "acceptance_steps": [],
+  "manual_review": []
 }
