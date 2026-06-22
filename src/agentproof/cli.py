@@ -1,6 +1,11 @@
 import argparse
+import json
+from pathlib import Path
 
 from agentproof import __version__
+from agentproof.git_reader import read_latest_commit
+from agentproof.report_generator import generate_report
+from agentproof.transcript_reader import read_transcript
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -20,9 +25,9 @@ def create_parser() -> argparse.ArgumentParser:
         help="Generate a delivery report.",
         description="Generate a delivery report.",
     )
-    generate_parser.add_argument("--repo", help="Path to the local Git repository.")
-    generate_parser.add_argument("--task-file", help="Path to the task JSON file.")
-    generate_parser.add_argument("--transcript", help="Path to the development transcript.")
+    generate_parser.add_argument("--repo", required=True, help="Path to the local Git repository.")
+    generate_parser.add_argument("--task-file", required=True, help="Path to the task JSON file.")
+    generate_parser.add_argument("--transcript", required=True, help="Path to the development transcript.")
     generate_parser.add_argument(
         "--output",
         default="delivery-report.md",
@@ -34,7 +39,13 @@ def create_parser() -> argparse.ArgumentParser:
 
 
 def _handle_generate(args: argparse.Namespace) -> int:
-    raise SystemExit("generate is not implemented yet.")
+    task = json.loads(Path(args.task_file).read_text(encoding="utf-8"))
+    transcript = read_transcript(args.transcript)
+    commit = read_latest_commit(args.repo)
+    report = generate_report(task, transcript, commit)
+    Path(args.output).write_text(report, encoding="utf-8")
+    print(f"Generated report: {args.output}")
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
