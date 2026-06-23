@@ -2,6 +2,12 @@
 
 AgentProof is a local Python CLI tool for generating Markdown delivery and acceptance reports for AI-assisted software development work.
 
+## Current Status
+
+AgentProof v0.1.0 is an initial closed-loop version. It can generate a local delivery report from task metadata, the latest Git commit, and a transcript file, but the product positioning and manager-facing experience are not final.
+
+Known positioning issue: the current workflow is still developer-led. Non-technical managers should receive the generated HTML report, not operate the CLI directly. Later versions should improve the handoff flow, report language, and reviewer experience before treating this as a polished management product.
+
 It reads three user-specified local inputs:
 
 1. A developer-authored `task.json` file.
@@ -45,6 +51,8 @@ task.json + local Git latest commit + transcript.txt
 - Transcript excerpt with a maximum length of 4000 characters.
 - Redaction for common secrets, emails, local paths, bearer tokens, cookies, JWTs, and private key blocks.
 - Fixed Markdown report structure.
+- Optional browser-friendly HTML report.
+- Optional auto-open after report generation.
 - Clear evidence source labels.
 - Build and test result labels showing they are developer-declared.
 
@@ -98,14 +106,16 @@ agentproof --help
 
 ## Quick Start
 
-From the AgentProof repository root, generate a local report without overwriting the committed static example report:
+From the AgentProof repository root, generate a local Markdown report plus a browser-friendly HTML report:
 
 ```bash
 agentproof generate \
   --repo . \
   --task-file examples/task.json \
   --transcript examples/transcript.txt \
-  --output delivery-report.md
+  --output delivery-report.md \
+  --html-output delivery-report.html \
+  --open
 ```
 
 On Windows PowerShell:
@@ -115,8 +125,12 @@ agentproof generate `
   --repo . `
   --task-file examples\task.json `
   --transcript examples\transcript.txt `
-  --output delivery-report.md
+  --output delivery-report.md `
+  --html-output delivery-report.html `
+  --open
 ```
+
+`delivery-report.html` can be opened directly in a browser and is better suited for managers or non-technical reviewers. `delivery-report.md` remains the plain Markdown source report for archiving or developer review.
 
 `--repo .` reads the latest commit from the current AgentProof repository. The Git evidence in the generated report therefore depends on your local checkout and current latest commit.
 
@@ -149,7 +163,9 @@ agentproof generate \
   --repo <repo> \
   --task-file <task.json> \
   --transcript <transcript.txt> \
-  --output <report.md>
+  --output <report.md> \
+  --html-output <report.html> \
+  --open
 ```
 
 Arguments:
@@ -158,6 +174,8 @@ Arguments:
 - `--task-file`: required UTF-8 JSON task file.
 - `--transcript`: required UTF-8 text or Markdown transcript file.
 - `--output`: optional Markdown output path. Defaults to `delivery-report.md`.
+- `--html-output`: optional HTML output path for browser-friendly viewing.
+- `--open`: optional flag to open the generated report with the system default application. If `--html-output` is provided, AgentProof opens the HTML report.
 
 ## task.json Fields
 

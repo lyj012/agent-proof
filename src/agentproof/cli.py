@@ -1,11 +1,12 @@
 import argparse
 import sys
+import webbrowser
 from pathlib import Path
 
 from agentproof import __version__
 from agentproof.errors import AgentProofError
 from agentproof.git_reader import read_latest_commit
-from agentproof.report_generator import generate_report
+from agentproof.report_generator import generate_html_report, generate_report
 from agentproof.task_reader import read_task
 from agentproof.transcript_reader import read_transcript
 
@@ -35,6 +36,15 @@ def create_parser() -> argparse.ArgumentParser:
         default="delivery-report.md",
         help="Output Markdown report path. Defaults to delivery-report.md.",
     )
+    generate_parser.add_argument(
+        "--html-output",
+        help="Optional HTML report path for browser-friendly viewing.",
+    )
+    generate_parser.add_argument(
+        "--open",
+        action="store_true",
+        help="Open the generated report with the system default application.",
+    )
     generate_parser.set_defaults(handler=_handle_generate)
 
     return parser
@@ -45,12 +55,18 @@ def _handle_generate(args: argparse.Namespace) -> int:
         output_path = Path(args.output)
         if output_path.parent != Path(".") and not output_path.parent.exists():
             raise AgentProofError(f"Output directory does not exist: {output_path.parent}")
+        html_output_path = Path(args.html_output) if args.html_output else None
+        if html_output_path and html_output_path.parent != Path(".") and not html_output_path.parent.exists():
+            raise AgentProofError(f"HTML output directory does not exist: {html_output_path.parent}")
 
         task = read_task(args.task_file)
         commit = read_latest_commit(args.repo)
         transcript = read_transcript(args.transcript, args.repo)
         report = generate_report(task, transcript, commit, args.repo, args.task_file, args.transcript, args.output)
         output_path.write_text(report, encoding="utf-8")
+        if html_output_path:
+            html_report = generate_html_report(report)
+            html_output_path.write_text(html_report, encoding="utf-8")
     except OSError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
@@ -59,7 +75,17 @@ def _handle_generate(args: argparse.Namespace) -> int:
         return 1
 
     print(f"Generated report: {args.output}")
+    if args.html_output:
+        print(f"Generated HTML report: {args.html_output}")
+    if args.open:
+        open_path = Path(args.html_output) if args.html_output else Path(args.output)
+        if not _open_report(open_path):
+            print(f"Warning: could not open report automatically: {open_path}", file=sys.stderr)
     return 0
+
+
+def _open_report(path: Path) -> bool:
+    return webbrowser.open(path.resolve().as_uri())
 
 
 def main(argv: list[str] | None = None) -> int:

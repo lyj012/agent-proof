@@ -1,5 +1,5 @@
 from agentproof.git_reader import CommitInfo
-from agentproof.report_generator import generate_report
+from agentproof.report_generator import generate_html_report, generate_report
 from agentproof.task_reader import TaskInfo
 from agentproof.transcript_reader import TranscriptInfo
 
@@ -38,8 +38,8 @@ def test_generate_report_defaults_empty_arrays(tmp_path) -> None:
         task=TaskInfo("Task", "Requirement", "not_run", "not_run", [], [], [], []),
     )
 
-    assert "- None declared" in report
-    assert "No acceptance steps provided." in report
+    assert "- 未声明" in report
+    assert "未提供客户验收步骤。" in report
 
 
 def test_generate_report_redacts_sensitive_information(tmp_path) -> None:
@@ -71,6 +71,26 @@ def test_generate_report_redacts_git_author_email(tmp_path) -> None:
     assert "test@example.com" not in report
     assert "Test User" in report
     assert "[EMAIL_REDACTED]" in report
+
+
+def test_generate_report_uses_chinese_fixed_labels(tmp_path) -> None:
+    report = _report(tmp_path)
+
+    assert "任务名称：Task" in report
+    assert "构建结果：not_run" in report
+    assert "测试结果：passed" in report
+    assert "来源：开发者声明" in report
+    assert "Evidence source" not in report
+
+
+def test_generate_html_report_renders_browser_friendly_html(tmp_path) -> None:
+    report = _report(tmp_path)
+    html = generate_html_report(report)
+
+    assert '<html lang="zh-CN">' in html
+    assert "<h1>交付报告</h1>" in html
+    assert "<h2>1. 交付概览</h2>" in html
+    assert "任务名称：Task" in html
 
 
 def _report(tmp_path, task=None, transcript=None) -> str:
@@ -105,4 +125,3 @@ def _report(tmp_path, task=None, transcript=None) -> str:
         tmp_path / "transcript.txt",
         tmp_path / "report.md",
     )
-

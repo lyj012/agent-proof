@@ -36,8 +36,24 @@ def test_generate_creates_delivery_report(tmp_path) -> None:
     assert "Implemented the smoke change." in report
     assert "add hello" in report
     assert "hello.txt" in report
-    assert "AgentProof executed build: no" in report
-    assert "AgentProof executed tests: no" in report
+    assert "AgentProof 是否执行构建：否" in report
+    assert "AgentProof 是否执行测试：否" in report
+
+
+def test_generate_creates_browser_friendly_html_report(tmp_path) -> None:
+    repo = _create_committed_repo(tmp_path / "repo")
+    task_file = _write_task(tmp_path / "task.json")
+    transcript_file = _write_transcript(tmp_path / "transcript.txt")
+    output_file = tmp_path / "delivery-report.md"
+    html_output_file = tmp_path / "delivery-report.html"
+
+    result = _run_generate(repo, task_file, transcript_file, output_file, html_output_file=html_output_file)
+
+    assert result == 0
+    html = html_output_file.read_text(encoding="utf-8")
+    assert '<html lang="zh-CN">' in html
+    assert "<h1>交付报告</h1>" in html
+    assert "任务名称：Smoke task" in html
 
 
 def test_generate_rejects_non_git_directory(tmp_path) -> None:
@@ -127,7 +143,7 @@ def test_generate_marks_long_transcript_as_truncated(tmp_path) -> None:
 
     assert result == 0
     report = output_file.read_text(encoding="utf-8")
-    assert "Transcript truncated: yes" in report
+    assert "是否截断：是" in report
     assert "a" * 4000 in report
     assert "a" * 4001 not in report
 
@@ -241,21 +257,22 @@ def _write_transcript(path, content="Implemented the smoke change."):
     return path
 
 
-def _run_generate(repo, task_file, transcript_file, output_file) -> int:
+def _run_generate(repo, task_file, transcript_file, output_file, html_output_file=None) -> int:
     parser = create_parser()
-    args = parser.parse_args(
-        [
-            "generate",
-            "--repo",
-            str(repo),
-            "--task-file",
-            str(task_file),
-            "--transcript",
-            str(transcript_file),
-            "--output",
-            str(output_file),
-        ]
-    )
+    argv = [
+        "generate",
+        "--repo",
+        str(repo),
+        "--task-file",
+        str(task_file),
+        "--transcript",
+        str(transcript_file),
+        "--output",
+        str(output_file),
+    ]
+    if html_output_file:
+        argv.extend(["--html-output", str(html_output_file)])
+    args = parser.parse_args(argv)
     return args.handler(args)
 
 
