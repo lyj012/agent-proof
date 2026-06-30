@@ -24,6 +24,13 @@ MANUAL_REVIEW_CHECKLIST = [
     "证据限制是否已经告知客户或项目负责人",
 ]
 
+RESULT_LABELS = {
+    "passed": "通过",
+    "failed": "失败",
+    "not_run": "未执行",
+    "unknown": "未知",
+}
+
 
 def generate_report(
     task: TaskInfo,
@@ -44,6 +51,9 @@ def generate_report(
     known_issues = [redact_text(item, repo_path) for item in task.known_issues]
     acceptance_steps = [redact_text(item, repo_path) for item in task.acceptance_steps]
     manual_review = [redact_text(item, repo_path) for item in task.manual_review]
+    task_name = redact_text(task.task_name, repo_path)
+    build_result = _result_label(task.build_result)
+    test_result = _result_label(task.test_result)
     commit_message = redact_text(commit.message, repo_path)
     author = redact_text(commit.author, repo_path)
     stat = redact_text(commit.stat, repo_path)
@@ -51,14 +61,23 @@ def generate_report(
 
     sections = [
         "# 交付报告",
+        "## 管理者摘要",
+        _format_manager_summary(
+            task_name=task_name,
+            build_result=build_result,
+            test_result=test_result,
+            risks=risks,
+            known_issues=known_issues,
+            acceptance_steps=acceptance_steps,
+        ),
         "## 1. 交付概览",
-        f"- 任务名称：{redact_text(task.task_name, repo_path)}",
+        f"- 任务名称：{task_name}",
         f"- 生成时间：{generated_at}",
         f"- AgentProof 版本：{__version__}",
         f"- Git 仓库：{repo_summary}",
         f"- 最新提交：`{short_hash}`",
-        f"- 构建结果声明：{task.build_result}",
-        f"- 测试结果声明：{task.test_result}",
+        f"- 构建结果声明：{build_result}",
+        f"- 测试结果声明：{test_result}",
         "## 2. 原始需求",
         requirement,
         "## 3. Git 证据",
@@ -81,14 +100,14 @@ def generate_report(
         "- 摘要类型：确定性脱敏摘录，不是 AI 语义总结",
         _code_block(transcript_excerpt, "text"),
         "## 7. 构建结果",
-        f"构建结果：{task.build_result}\n来源：开发者声明\nAgentProof 是否执行构建：否",
+        f"构建结果：{build_result}\n来源：开发者声明\nAgentProof 是否执行构建：否",
         "## 8. 测试结果",
-        f"测试结果：{task.test_result}\n来源：开发者声明\nAgentProof 是否执行测试：否",
+        f"测试结果：{test_result}\n来源：开发者声明\nAgentProof 是否执行测试：否",
         "## 9. 风险与遗留问题",
         "### 风险",
-        _format_list(risks),
+        _format_list(risks, empty="未声明"),
         "### 已知问题",
-        _format_list(known_issues),
+        _format_list(known_issues, empty="未声明"),
         "## 10. 人工审核清单",
         _format_checklist(MANUAL_REVIEW_CHECKLIST),
         "### 开发者声明已完成的审核项",
@@ -122,6 +141,54 @@ def generate_report(
         ),
     ]
     return "\n\n".join(sections).rstrip() + "\n"
+
+
+def _result_label(result: str) -> str:
+    return RESULT_LABELS.get(result, "未知")
+
+
+def _format_manager_summary(
+    *,
+    task_name: str,
+    build_result: str,
+    test_result: str,
+    risks: Sequence[str],
+    known_issues: Sequence[str],
+    acceptance_steps: Sequence[str],
+) -> str:
+    needs_review = build_result != "通过" or test_result != "通过"
+    has_open_items = bool(risks or known_issues)
+
+    if needs_review:
+        conclusion = "构建或测试声明未全部通过，需要人工复核后再验收。"
+    elif has_open_items:
+        conclusion = "构建和测试声明均为通过，但存在风险或遗留问题，需要人工确认。"
+    else:
+        conclusion = "构建和测试声明均为通过，可进入人工验收。"
+
+    risk_note = (
+        "存在风险或遗留问题，需要人工确认。"
+        if has_open_items
+        else "未声明风险或遗留问题。"
+    )
+    acceptance_action = (
+        acceptance_steps[0]
+        if acceptance_steps
+        else "请项目负责人按人工审核清单和客户验收步骤确认后再验收。"
+    )
+
+    return "\n".join(
+        [
+            f"- 交付结论：{conclusion}",
+            f"- 任务名称：{task_name}",
+            f"- 构建情况：{build_result}（来自开发者声明；AgentProof 未实际执行构建）",
+            f"- 测试情况：{test_result}（来自开发者声明；AgentProof 未实际执行测试）",
+            f"- 风险数量：{len(risks)}",
+            f"- 已知问题数量：{len(known_issues)}",
+            f"- 风险/问题提示：{risk_note}",
+            f"- 建议验收动作：{acceptance_action}",
+        ]
+    )
 
 
 def generate_html_report(markdown_report: str, title: str = "交付报告") -> str:

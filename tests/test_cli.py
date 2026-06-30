@@ -54,7 +54,14 @@ def test_cli_generate_writes_html_output(tmp_path) -> None:
     assert result == 0
     assert output_file.exists()
     assert html_output_file.exists()
-    assert '<html lang="zh-CN">' in html_output_file.read_text(encoding="utf-8")
+    html = html_output_file.read_text(encoding="utf-8")
+    assert '<html lang="zh-CN">' in html
+    assert "<h2>管理者摘要</h2>" in html
+    assert "构建情况：未执行" in html
+    assert "测试情况：通过" in html
+    assert "来自开发者声明" in html
+    assert "AgentProof 未实际执行构建" in html
+    assert "AgentProof 未实际执行测试" in html
 
 
 def test_cli_generate_open_prefers_html_output(tmp_path, monkeypatch) -> None:

@@ -53,7 +53,13 @@ def test_generate_creates_browser_friendly_html_report(tmp_path) -> None:
     html = html_output_file.read_text(encoding="utf-8")
     assert '<html lang="zh-CN">' in html
     assert "<h1>交付报告</h1>" in html
+    assert "<h2>管理者摘要</h2>" in html
     assert "任务名称：Smoke task" in html
+    assert "构建情况：未执行" in html
+    assert "测试情况：通过" in html
+    assert "来源：开发者声明" in html
+    assert "AgentProof 是否执行构建：否" in html
+    assert "AgentProof 是否执行测试：否" in html
 
 
 def test_generate_rejects_non_git_directory(tmp_path) -> None:
